@@ -28,7 +28,7 @@ namespace ITStepBot
                     break;
                 if (key.Key == ConsoleKey.Backspace)
                 {
-                    if (password.Length > 0 || password != null)
+                    if (password.Length != 0 || password != null)
                         password = password.Remove(password.Length - 1);
                 }
                 else
