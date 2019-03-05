@@ -200,5 +200,32 @@ namespace MyStatAPI
                 return null;
             }
         }
+
+        public string GetSchedule()
+        {
+            try
+            {
+                Logger.Log("Getting schedule.", ConsoleColor.Yellow);
+                string data;
+                WebRequest getRequest = WebRequest.Create($"https://msapi.itstep.org/api/v1/schedule/operations/get-month?date_filter={DateTime.Now.Year}-{DateTime.Now.Month}-{DateTime.Now.Day}");
+                getRequest.Method = "GET";
+                getRequest.Headers.Add("Accept", "application/json, text/plain, */*");
+                getRequest.Headers.Add("Accept-Language", "ru_RU, ru");
+                getRequest.Headers.Add("Authorization", $"Bearer {AccessToken}");
+                getRequest.Headers.Add("Origin", "https://mystat.itstep.org");
+
+                WebResponse getResponse = getRequest.GetResponse();
+                using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+                {
+                    data = sr.ReadToEnd();
+                }
+                Logger.Log("Getting schedule DONE.", ConsoleColor.Green);
+                return data;
+            } catch(Exception e)
+            {
+                Logger.Log(e.Message, ConsoleColor.Red);
+                return null;
+            }
+        }
     }
 }
