@@ -51,10 +51,10 @@ namespace ITStepBot
                 Logger.Log("Getting daily points isn't possible. Sleeping 3sec...", ConsoleColor.DarkCyan);
                 Thread.Sleep(3000);
             }
-            Console.WriteLine(myStat.GetLatestNews());
-            myStat.GetUserActivities(); //works
-            myStat.GetGroupInfo(); //works
-            Console.WriteLine(myStat.GetSchedule());
+            //Console.WriteLine(myStat.GetLatestNews());
+            //myStat.GetUserActivities(); //works
+            //myStat.GetGroupInfo(); //works
+            //Console.WriteLine(myStat.GetSchedule());
         }
     }
 }

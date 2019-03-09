@@ -111,6 +111,28 @@ namespace MyStatAPI
             }
         }
 
+        private string GetEvaluationId()
+        {
+            Logger.Log("Getting evaluation_id", ConsoleColor.DarkCyan);
+            WebRequest getRequest = WebRequest.Create("https://msapi.itstep.org/api/v1/feedback/students/evaluate-academy-day?evaluation=2U8ftB5OCmgrsK7c76pKE1TXHB_stVr4");
+            getRequest.Method = "GET";
+            getRequest.Headers.Add("Accept", "application/json, text/plain, */*");
+            getRequest.Headers.Add("Accept-Language", "ru_RU, ru");
+            getRequest.Headers.Add("Authorization", $"Bearer null");
+            getRequest.Headers.Add("Origin", "https://mystat.itstep.org");
+            getRequest.Headers.Add("Referer", "https://mystat.itstep.org/ru/2U8ftB5OCmgrsK7c76pKE1TXHB_stVr4");
+
+            WebResponse getResponse = getRequest.GetResponse();
+            string data;
+            using(StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+            {
+                data = sr.ReadToEnd();
+            }
+            Logger.Log("Getting evaluation_id DONE.", ConsoleColor.Green);
+            dynamic res = JsonConvert.DeserializeObject(data);
+            return res.id;
+        }
+
         public bool GetDailyPoints()
         {
             try
@@ -127,7 +149,8 @@ namespace MyStatAPI
                 request.Headers.Add("Origin", "https://mystat.itstep.org");
                 request.Headers.Add("Referer", "https://mystat.itstep.org/ru/2U8ftB5OCmgrsK7c76pKE1TXHB_stVr4");
                 //TODO: Понять какой ставить evaluation_id
-                string payload = "evaluation_id=258600&evaluation_comment=''";
+                string payload = $"evaluation_id={GetEvaluationId()}&evaluation_comment='Coal Bot Evaluation'";
+                Logger.Log($"DAILY POINTS PAYLOAD: {payload}", ConsoleColor.DarkMagenta);
                 byte[] bytes = Encoding.ASCII.GetBytes(payload);
                 request.ContentLength = bytes.Length;
                 using (Stream os = request.GetRequestStream())
