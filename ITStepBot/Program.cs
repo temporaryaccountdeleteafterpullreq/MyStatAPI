@@ -28,12 +28,13 @@ namespace ITStepBot
                     break;
                 if (key.Key == ConsoleKey.Backspace)
                 {
-                    if (password.Length != 0 || password != null)
-                        password = password.Remove(password.Length - 1);
+                    if (password?.Length != 0)
+                        password = password?.Remove(password.Length - 1);
                 }
                 else
                     password += key.KeyChar;
             }
+
             Console.Write(Environment.NewLine);
             
             Api myStat = new Api(username, password);
