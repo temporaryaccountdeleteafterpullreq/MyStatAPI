@@ -250,5 +250,32 @@ namespace MyStatAPI
                 return null;
             }
         }
+
+        public string GetHomeworks()
+        {
+            try
+            {
+                Logger.Log("Getting homeworks.", ConsoleColor.Yellow);
+                string data;
+                WebRequest getRequest = WebRequest.Create($"https://msapi.itstep.org/api/v1/homework/operations/list?page=1&status=3");
+                getRequest.Method = "GET";
+                getRequest.Headers.Add("Accept", "application/json, text/plain, */*");
+                getRequest.Headers.Add("Accept-Language", "ru_RU, ru");
+                getRequest.Headers.Add("Authorization", $"Bearer {AccessToken}");
+                getRequest.Headers.Add("Origin", "https://mystat.itstep.org");
+
+                WebResponse getResponse = getRequest.GetResponse();
+                using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+                {
+                    data = sr.ReadToEnd();
+                }
+                Logger.Log("Getting homeworks DONE.", ConsoleColor.Green);
+                return data;
+            } catch(Exception e)
+            {
+                Logger.Log(e.Message, ConsoleColor.Red);
+                return null;
+            }
+        }
     }
 }

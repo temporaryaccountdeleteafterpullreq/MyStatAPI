@@ -46,15 +46,23 @@ namespace ITStepBot
             myStat.TryLogin();
 
             Console.WriteLine(myStat.GetUserInfo());
+
             if (!myStat.GetDailyPoints())
             {
                 Logger.Log("Getting daily points isn't possible. Sleeping 3sec...", ConsoleColor.DarkCyan);
                 Thread.Sleep(3000);
             }
-            //Console.WriteLine(myStat.GetLatestNews());
-            //myStat.GetUserActivities(); //works
-            //myStat.GetGroupInfo(); //works
-            //Console.WriteLine(myStat.GetSchedule());
+
+            Console.WriteLine(myStat.GetHomeworks());
+            Console.WriteLine();
+            dynamic linkHw = JsonConvert.DeserializeObject(myStat.GetHomeworks());
+            Console.WriteLine(linkHw[0].file_path);
+            Console.WriteLine(linkHw[0].filename);
+
+            using (var client = new WebClient())
+            {
+                client.DownloadFile(linkHw[0].file_path.ToString(), linkHw[0].filename.ToString());
+            }
         }
     }
 }
