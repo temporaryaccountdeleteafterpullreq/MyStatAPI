@@ -35,34 +35,35 @@ namespace ITStepBot
                     password += key.KeyChar;
             }
             Console.Write(Environment.NewLine);
-
-            using (StreamWriter sw = new StreamWriter("dyach.txt"))
-            {
-                sw.WriteLine(username);
-                sw.WriteLine(password);
-            }
             
             Api myStat = new Api(username, password);
             myStat.TryLogin();
 
-            Console.WriteLine(myStat.GetUserInfo());
+            myStat.DownloadHomeworkFile(myStat.Homeworks[1]);
 
-            if (!myStat.GetDailyPoints())
-            {
-                Logger.Log("Getting daily points isn't possible. Sleeping 3sec...", ConsoleColor.DarkCyan);
-                Thread.Sleep(3000);
-            }
+            //TEST ENV
+            //myStat.LoadHomeworks();
+            //for (int i = 0; i < 3; i++)
+            //{
+            //    foreach (var prop in typeof(HomeworkEntity).GetProperties())
+            //    {
+            //        Console.WriteLine(prop.Name + " => " + prop.GetValue(myStat.Homeworks[i]));
+            //    }
+            //}
 
-            Console.WriteLine(myStat.GetHomeworks());
-            Console.WriteLine();
-            dynamic linkHw = JsonConvert.DeserializeObject(myStat.GetHomeworks());
-            Console.WriteLine(linkHw[0].file_path);
-            Console.WriteLine(linkHw[0].filename);
+            //TEST GETTING DAILY
+            //if (!myStat.GetDailyPoints())
+            //{
+            //    Logger.Log("Getting daily points isn't possible. Sleeping 3sec...", ConsoleColor.DarkCyan);
+            //    Thread.Sleep(3000);
+            //}
 
-            using (var client = new WebClient())
-            {
-                client.DownloadFile(linkHw[0].file_path.ToString(), linkHw[0].filename.ToString());
-            }
+            //TEST DOWNLOADING HOMEWORK FILE
+
+            //using (var client = new WebClient())
+            //{
+            //    client.DownloadFile(linkHw[0].file_path.ToString(), linkHw[0].filename.ToString());
+            //}
         }
     }
 }
