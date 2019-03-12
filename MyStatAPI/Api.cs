@@ -20,6 +20,12 @@ namespace MyStatAPI
         public string Username { get; private set; }
         private string Password { get; set; }
         public string AccessToken { get; private set; }
+        public UserEntity CurrentUser { get; private set; }
+        public List<NewsEntity> LatestNews { get; private set; }
+        public List<UserActivityEntity> CurrentUserActivities { get; private set; }
+        public List<GroupUserEntity> GroupUsers { get; private set; }
+        public List<ScheduleEntity> Schedule { get; private set; }
+        public List<HomeworkEntity> Homeworks { get; private set; }
 
         public Api(string username, string password)
         {
@@ -54,6 +60,14 @@ namespace MyStatAPI
                     Logger.Log("Access token reading. DONE.", ConsoleColor.Yellow);
                     AccessToken = result.access_token;
                 }
+
+                LoadUserInfo();
+                LoadUserActivities();
+                LoadSchedule();
+                LoadLatestNews();
+                LoadHomeworks();
+                LoadGroupInfo();
+
                 return true;
             } catch(Exception e)
             {
@@ -62,28 +76,39 @@ namespace MyStatAPI
             }
         }
 
-        public string GetUserInfo()
+        private bool LoadUserInfo()
         {
-            Logger.Log("Getting user info.", ConsoleColor.Yellow);
-            string pageSource;
-            WebRequest getRequest = WebRequest.Create(UserInfoUrl);
-            getRequest.Method = "GET";
-            getRequest.Headers.Add("Accept", "application/json, text/plain, */*");
-            getRequest.Headers.Add("Accept-Language", "ru_RU, ru");
-            getRequest.Headers.Add("Authorization", $"Bearer {AccessToken}");
-            getRequest.Headers.Add("Origin", "https://mystat.itstep.org");
-            getRequest.Headers.Add("Referer", "https://mystat.itstep.org/ru/auth/login/index");
-
-            WebResponse getResponse = getRequest.GetResponse();
-            using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+            try
             {
-                pageSource = sr.ReadToEnd();
+                Logger.Log("Getting user info.", ConsoleColor.Yellow);
+                string pageSource;
+                WebRequest getRequest = WebRequest.Create(UserInfoUrl);
+                getRequest.Method = "GET";
+                getRequest.Headers.Add("Accept", "application/json, text/plain, */*");
+                getRequest.Headers.Add("Accept-Language", "ru_RU, ru");
+                getRequest.Headers.Add("Authorization", $"Bearer {AccessToken}");
+                getRequest.Headers.Add("Origin", "https://mystat.itstep.org");
+                getRequest.Headers.Add("Referer", "https://mystat.itstep.org/ru/auth/login/index");
+
+                WebResponse getResponse = getRequest.GetResponse();
+                using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+                {
+                    pageSource = sr.ReadToEnd();
+                }
+
+                Logger.Log("Getting user info DONE.", ConsoleColor.Green);
+
+                CurrentUser = JsonConvert.DeserializeObject<UserEntity>(pageSource);
+                return true;
             }
-            Logger.Log("Getting user info DONE.", ConsoleColor.Green);
-            return pageSource;
+            catch (Exception e)
+            {
+                Logger.Log(e.Message, ConsoleColor.Red);
+                return false;
+            }
         }
 
-        public string GetLatestNews()
+        private bool LoadLatestNews()
         {
             try
             {
@@ -103,37 +128,49 @@ namespace MyStatAPI
                     data = sr.ReadToEnd();
                 }
                 Logger.Log("Getting latest news DONE.", ConsoleColor.Green);
-                return data;
+                LatestNews = JsonConvert.DeserializeObject<List<NewsEntity>>(data);
+                return true;
             } catch(Exception e)
+            {
+                Logger.Log(e.Message, ConsoleColor.Red);
+                return false;
+            }
+        }
+
+        private string GetEvaluationId()
+        {
+            try
+            {
+                Logger.Log("Getting evaluation_id", ConsoleColor.DarkCyan);
+                WebRequest getRequest =
+                    WebRequest.Create(
+                        "https://msapi.itstep.org/api/v1/feedback/students/evaluate-academy-day?evaluation=2U8ftB5OCmgrsK7c76pKE1TXHB_stVr4");
+                getRequest.Method = "GET";
+                getRequest.Headers.Add("Accept", "application/json, text/plain, */*");
+                getRequest.Headers.Add("Accept-Language", "ru_RU, ru");
+                getRequest.Headers.Add("Authorization", $"Bearer null");
+                getRequest.Headers.Add("Origin", "https://mystat.itstep.org");
+                getRequest.Headers.Add("Referer", "https://mystat.itstep.org/ru/2U8ftB5OCmgrsK7c76pKE1TXHB_stVr4");
+
+                WebResponse getResponse = getRequest.GetResponse();
+                string data;
+                using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+                {
+                    data = sr.ReadToEnd();
+                }
+
+                Logger.Log("Getting evaluation_id DONE.", ConsoleColor.Green);
+                dynamic res = JsonConvert.DeserializeObject(data);
+                return res.id;
+            }
+            catch (Exception e)
             {
                 Logger.Log(e.Message, ConsoleColor.Red);
                 return null;
             }
         }
 
-        private string GetEvaluationId()
-        {
-            Logger.Log("Getting evaluation_id", ConsoleColor.DarkCyan);
-            WebRequest getRequest = WebRequest.Create("https://msapi.itstep.org/api/v1/feedback/students/evaluate-academy-day?evaluation=2U8ftB5OCmgrsK7c76pKE1TXHB_stVr4");
-            getRequest.Method = "GET";
-            getRequest.Headers.Add("Accept", "application/json, text/plain, */*");
-            getRequest.Headers.Add("Accept-Language", "ru_RU, ru");
-            getRequest.Headers.Add("Authorization", $"Bearer null");
-            getRequest.Headers.Add("Origin", "https://mystat.itstep.org");
-            getRequest.Headers.Add("Referer", "https://mystat.itstep.org/ru/2U8ftB5OCmgrsK7c76pKE1TXHB_stVr4");
-
-            WebResponse getResponse = getRequest.GetResponse();
-            string data;
-            using(StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
-            {
-                data = sr.ReadToEnd();
-            }
-            Logger.Log("Getting evaluation_id DONE.", ConsoleColor.Green);
-            dynamic res = JsonConvert.DeserializeObject(data);
-            return res.id;
-        }
-
-        public bool GetDailyPoints()
+        public bool CollectDailyPoints()
         {
             try
             {
@@ -148,7 +185,6 @@ namespace MyStatAPI
                 request.Headers.Add("Content-Type", "application/json");
                 request.Headers.Add("Origin", "https://mystat.itstep.org");
                 request.Headers.Add("Referer", "https://mystat.itstep.org/ru/2U8ftB5OCmgrsK7c76pKE1TXHB_stVr4");
-                //TODO: Понять какой ставить evaluation_id
                 string payload = $"evaluation_id={GetEvaluationId()}&evaluation_comment='Coal Bot Evaluation'";
                 Logger.Log($"DAILY POINTS PAYLOAD: {payload}", ConsoleColor.DarkMagenta);
                 byte[] bytes = Encoding.ASCII.GetBytes(payload);
@@ -168,7 +204,7 @@ namespace MyStatAPI
             }
         }
 
-        public string GetUserActivities()
+        private bool LoadUserActivities()
         {
             try
             {
@@ -188,15 +224,16 @@ namespace MyStatAPI
                     data = sr.ReadToEnd();
                 }
                 Logger.Log("Getting user activities DONE.", ConsoleColor.Green);
-                return data;
+                CurrentUserActivities = JsonConvert.DeserializeObject<List<UserActivityEntity>>(data);
+                return true;
             } catch(Exception e)
             {
                 Logger.Log(e.Message, ConsoleColor.Red);
-                return null;
+                return false;
             }
         }
 
-        public string GetGroupInfo()
+        private bool LoadGroupInfo()
         {
             try
             {
@@ -216,15 +253,16 @@ namespace MyStatAPI
                     data = sr.ReadToEnd();
                 }
                 Logger.Log("Getting group info DONE.", ConsoleColor.Green);
-                return data;
+                GroupUsers = JsonConvert.DeserializeObject<List<GroupUserEntity>>(data);
+                return true;
             } catch (Exception e)
             {
                 Logger.Log(e.Message, ConsoleColor.Red);
-                return null;
+                return false;
             }
         }
 
-        public string GetSchedule()
+        private bool LoadSchedule()
         {
             try
             {
@@ -243,21 +281,22 @@ namespace MyStatAPI
                     data = sr.ReadToEnd();
                 }
                 Logger.Log("Getting schedule DONE.", ConsoleColor.Green);
-                return data;
+                Schedule = JsonConvert.DeserializeObject<List<ScheduleEntity>>(data);
+                return true;
             } catch(Exception e)
             {
                 Logger.Log(e.Message, ConsoleColor.Red);
-                return null;
+                return false;
             }
         }
 
-        public string GetHomeworks()
+        private bool LoadHomeworks()
         {
             try
             {
                 Logger.Log("Getting homeworks.", ConsoleColor.Yellow);
                 string data;
-                WebRequest getRequest = WebRequest.Create($"https://msapi.itstep.org/api/v1/homework/operations/list?page=1&status=3");
+                WebRequest getRequest = WebRequest.Create($"https://msapi.itstep.org/api/v1/homework/operations/list?page=1");
                 getRequest.Method = "GET";
                 getRequest.Headers.Add("Accept", "application/json, text/plain, */*");
                 getRequest.Headers.Add("Accept-Language", "ru_RU, ru");
@@ -270,11 +309,38 @@ namespace MyStatAPI
                     data = sr.ReadToEnd();
                 }
                 Logger.Log("Getting homeworks DONE.", ConsoleColor.Green);
-                return data;
+                Homeworks = JsonConvert.DeserializeObject<List<HomeworkEntity>>(data);
+                return true;
             } catch(Exception e)
             {
                 Logger.Log(e.Message, ConsoleColor.Red);
-                return null;
+                return false;
+            }
+        }
+
+        public bool DownloadHomeworkFile(HomeworkEntity homework, string downloadPath = null)
+        {
+            try
+            {
+                Logger.Log("Downloading homework file...", ConsoleColor.Yellow);
+                DirectoryInfo info = null;
+                if (downloadPath != null && Directory.Exists(downloadPath))
+                    info = new DirectoryInfo(downloadPath);
+                else
+                    info = new DirectoryInfo(Environment.CurrentDirectory);
+
+                using (var client = new WebClient())
+                {
+                    client.DownloadFile(homework.Filepath, info.FullName + $"\\{homework.Filename}");
+                }
+
+                Logger.Log($"Downloading done. Path: {info.FullName}\\{homework.Filename}", ConsoleColor.Green);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e.Message, ConsoleColor.Red);
+                return false;
             }
         }
     }
