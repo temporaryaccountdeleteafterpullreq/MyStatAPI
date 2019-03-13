@@ -5,6 +5,8 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MyStatAPI
 {
@@ -341,6 +343,78 @@ namespace MyStatAPI
             {
                 Logger.Log(e.Message, ConsoleColor.Red);
                 return false;
+            }
+        }
+
+        public async void UploadHomeworkFile(string pathToFile)
+        {
+            try
+            {
+                Logger.Log("Uploading file...", ConsoleColor.Yellow);
+
+                HttpClient httpClient = new HttpClient();
+                MultipartFormDataContent form = new MultipartFormDataContent();
+
+                form.Add(new StringContent(AccessToken), "token");
+                form.Add(new StringContent("create"), "action");
+                form.Add(new StringContent("prod"), "env");
+                byte[] data = File.ReadAllBytes(pathToFile);
+                form.Add(new ByteArrayContent(data, 0, data.Length), "file");
+                form.Add(new StringContent("1"), "type");
+
+                var httpReqMes = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri("https://mystatfiles.itstep.org/index.php"),
+                    Headers =
+                    {
+                        { "Authorization", $"Bearer {AccessToken}" },
+                        { "Accept", "application/json, text/plain, */*" },
+                        { "Origin", "https://mystat.itstep.org" },
+                        //{ "Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryXTO9eWhIGwIDAdXe" }
+                    },
+                    Content = form
+                };
+
+                HttpResponseMessage responseMessage = await httpClient.SendAsync(httpReqMes);
+                responseMessage.EnsureSuccessStatusCode();
+
+                Console.WriteLine(responseMessage.Content.ReadAsStringAsync());
+                Console.WriteLine("=================");
+
+                var content = new FormUrlEncodedContent(new[]
+                    {
+                    new KeyValuePair<string, string>("filename", $"{Path.GetFileName(pathToFile)}"),
+                    new KeyValuePair<string, string>("id", "37559")
+                });
+
+                var create = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri("https://msapi.itstep.org/api/v1/homework/operations/create"),
+                    Headers =
+                    {
+                        { "Authorization", $"Bearer {AccessToken}" },
+                        { "Accept", "application/json, text/plain/ */*" },
+                        { "Origin", "https://mystat.itstep.org" },
+                        { "Content-Type", "application/json" }
+                    },
+                    Content = content
+                };
+
+                HttpResponseMessage responseMessage2 = await httpClient.SendAsync(create);
+                responseMessage2.EnsureSuccessStatusCode();
+
+                Console.WriteLine(responseMessage2.Content.ReadAsStringAsync());
+
+                httpClient.Dispose();
+                Logger.Log("Uploading file DONE.", ConsoleColor.Green);
+                //return true;
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e.Message, ConsoleColor.Red);
+                //return false;
             }
         }
     }
