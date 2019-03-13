@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using MyStatAPI;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ITStepBot
 {
@@ -40,7 +41,16 @@ namespace ITStepBot
             Api myStat = new Api(username, password);
             myStat.TryLogin();
 
-            myStat.DownloadHomeworkFile(myStat.Homeworks[1]);
+
+            try
+            {
+                myStat.UploadHomeworkFile(@"C:\Users\Leonid\Desktop\lisa.jpg");
+            } catch(Exception e)
+            {
+                Logger.Log(e.Message, ConsoleColor.Gray);
+            }
+            Task.WaitAll();
+            //myStat.DownloadHomeworkFile(myStat.Homeworks[1]);
 
             //TEST ENV
             //myStat.LoadHomeworks();
@@ -53,7 +63,7 @@ namespace ITStepBot
             //}
 
             //TEST GETTING DAILY
-            //if (!myStat.GetDailyPoints())
+            //if (!myStat.CollectDailyPoints())
             //{
             //    Logger.Log("Getting daily points isn't possible. Sleeping 3sec...", ConsoleColor.DarkCyan);
             //    Thread.Sleep(3000);
