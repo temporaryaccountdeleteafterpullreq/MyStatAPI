@@ -35,7 +35,7 @@ namespace MyStatAPI
             Password = password;
         }
         
-        public bool TryLogin()
+        public bool TryLogin(bool loadAllData = true)
         {
             try
             {
@@ -63,12 +63,15 @@ namespace MyStatAPI
                     AccessToken = result.access_token;
                 }
 
-                LoadUserInfo();
-                LoadUserActivities();
-                LoadSchedule();
-                LoadLatestNews();
-                LoadHomeworks();
-                LoadGroupInfo();
+                if (loadAllData)
+                {
+                    LoadUserInfo();
+                    LoadUserActivities();
+                    LoadSchedule();
+                    LoadLatestNews();
+                    LoadHomeworks();
+                    LoadGroupInfo();
+                }
 
                 return true;
             } catch(Exception e)
@@ -346,7 +349,7 @@ namespace MyStatAPI
             }
         }
 
-        public async void UploadHomeworkFile(string pathToFile)
+        public void UploadHomeworkFile(string pathToFile)
         {
             try
             {
@@ -356,7 +359,6 @@ namespace MyStatAPI
                 MultipartFormDataContent form = new MultipartFormDataContent();
 
                 form.Add(new StringContent(AccessToken), "token");
-                form.Add(new StringContent("create"), "action");
                 form.Add(new StringContent("prod"), "env");
                 byte[] data = File.ReadAllBytes(pathToFile);
                 form.Add(new ByteArrayContent(data, 0, data.Length), "file");
@@ -371,43 +373,42 @@ namespace MyStatAPI
                         { "Authorization", $"Bearer {AccessToken}" },
                         { "Accept", "application/json, text/plain, */*" },
                         { "Origin", "https://mystat.itstep.org" },
-                        //{ "Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryXTO9eWhIGwIDAdXe" }
+                        { "Referer", "https://mystat.itstep.org/en/main/homework/page/index" }
                     },
                     Content = form
                 };
 
-                HttpResponseMessage responseMessage = await httpClient.SendAsync(httpReqMes);
+                HttpResponseMessage responseMessage = httpClient.SendAsync(httpReqMes).Result;
                 responseMessage.EnsureSuccessStatusCode();
-
-                Console.WriteLine(responseMessage.Content.ReadAsStringAsync());
+                
+                Console.WriteLine(responseMessage.Content.ReadAsStringAsync().Result);
+                Task.WaitAll();
                 Console.WriteLine("=================");
+                //var content = new FormUrlEncodedContent(new[]
+                //    {
+                //    new KeyValuePair<string, string>("filename", $"{Path.GetFileName(pathToFile)}"),
+                //    new KeyValuePair<string, string>("id", "37559")
+                //});
 
-                var content = new FormUrlEncodedContent(new[]
-                    {
-                    new KeyValuePair<string, string>("filename", $"{Path.GetFileName(pathToFile)}"),
-                    new KeyValuePair<string, string>("id", "37559")
-                });
+                //var create = new HttpRequestMessage
+                //{
+                //    Method = HttpMethod.Get,
+                //    RequestUri = new Uri("https://msapi.itstep.org/api/v1/homework/operations/create"),
+                //    Headers =
+                //    {
+                //        { "Authorization", $"Bearer {AccessToken}" },
+                //        { "Accept", "application/json, text/plain, */*" },
+                //        { "Origin", "https://mystat.itstep.org" },
+                //    },
+                //    Content = content
+                //};
 
-                var create = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Get,
-                    RequestUri = new Uri("https://msapi.itstep.org/api/v1/homework/operations/create"),
-                    Headers =
-                    {
-                        { "Authorization", $"Bearer {AccessToken}" },
-                        { "Accept", "application/json, text/plain/ */*" },
-                        { "Origin", "https://mystat.itstep.org" },
-                        { "Content-Type", "application/json" }
-                    },
-                    Content = content
-                };
+                //HttpResponseMessage responseMessage2 = await httpClient.SendAsync(create);
+                //responseMessage2.EnsureSuccessStatusCode();
 
-                HttpResponseMessage responseMessage2 = await httpClient.SendAsync(create);
-                responseMessage2.EnsureSuccessStatusCode();
+                //Console.WriteLine(responseMessage2.Content.ReadAsStringAsync().Result);
 
-                Console.WriteLine(responseMessage2.Content.ReadAsStringAsync());
-
-                httpClient.Dispose();
+                //httpClient.Dispose();
                 Logger.Log("Uploading file DONE.", ConsoleColor.Green);
                 //return true;
             }

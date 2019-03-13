@@ -39,17 +39,19 @@ namespace ITStepBot
             Console.Write(Environment.NewLine);
             
             Api myStat = new Api(username, password);
-            myStat.TryLogin();
+            myStat.TryLogin(false);
 
 
             try
             {
-                myStat.UploadHomeworkFile(@"C:\Users\Leonid\Desktop\lisa.jpg");
+                myStat.UploadHomeworkFile(@"C:\Users\l.listopadov\Desktop\new1.cs");
+                Task.WaitAll();
             } catch(Exception e)
             {
                 Logger.Log(e.Message, ConsoleColor.Gray);
             }
             Task.WaitAll();
+            Console.ReadKey();
             //myStat.DownloadHomeworkFile(myStat.Homeworks[1]);
 
             //TEST ENV
