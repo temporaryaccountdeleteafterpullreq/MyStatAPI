@@ -349,7 +349,7 @@ namespace MyStatAPI
             }
         }
 
-        public void UploadHomeworkFile(string pathToFile)
+        public bool UploadHomeworkFile(int homeworkId, string pathToFile)
         {
             try
             {
@@ -360,8 +360,9 @@ namespace MyStatAPI
 
                 form.Add(new StringContent(AccessToken), "token");
                 form.Add(new StringContent("prod"), "env");
+                form.Add(new StringContent("create"), "action");
                 byte[] data = File.ReadAllBytes(pathToFile);
-                form.Add(new ByteArrayContent(data, 0, data.Length), "file");
+                form.Add(new ByteArrayContent(data, 0, data.Length), "file", Path.GetFileName(pathToFile));
                 form.Add(new StringContent("1"), "type");
 
                 var httpReqMes = new HttpRequestMessage
@@ -381,41 +382,40 @@ namespace MyStatAPI
                 HttpResponseMessage responseMessage = httpClient.SendAsync(httpReqMes).Result;
                 responseMessage.EnsureSuccessStatusCode();
                 
-                Console.WriteLine(responseMessage.Content.ReadAsStringAsync().Result);
-                Task.WaitAll();
+                dynamic lisa = JsonConvert.DeserializeObject(responseMessage.Content.ReadAsStringAsync().Result);
                 Console.WriteLine("=================");
-                //var content = new FormUrlEncodedContent(new[]
-                //    {
-                //    new KeyValuePair<string, string>("filename", $"{Path.GetFileName(pathToFile)}"),
-                //    new KeyValuePair<string, string>("id", "37559")
-                //});
+                var content = new FormUrlEncodedContent(new[]
+                    {
+                    new KeyValuePair<string, string>("filename", $"{lisa.name}"),
+                    new KeyValuePair<string, string>("id", $"{homeworkId}")
+                });
 
-                //var create = new HttpRequestMessage
-                //{
-                //    Method = HttpMethod.Get,
-                //    RequestUri = new Uri("https://msapi.itstep.org/api/v1/homework/operations/create"),
-                //    Headers =
-                //    {
-                //        { "Authorization", $"Bearer {AccessToken}" },
-                //        { "Accept", "application/json, text/plain, */*" },
-                //        { "Origin", "https://mystat.itstep.org" },
-                //    },
-                //    Content = content
-                //};
+                var create = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri("https://msapi.itstep.org/api/v1/homework/operations/create"),
+                    Headers =
+                    {
+                        { "Authorization", $"Bearer {AccessToken}" },
+                        { "Accept", "application/json, text/plain, */*" },
+                        { "Origin", "https://mystat.itstep.org" },
+                    },
+                    Content = content
+                };
 
-                //HttpResponseMessage responseMessage2 = await httpClient.SendAsync(create);
-                //responseMessage2.EnsureSuccessStatusCode();
+                HttpResponseMessage responseMessage2 = httpClient.SendAsync(create).Result;
+                responseMessage2.EnsureSuccessStatusCode();
 
-                //Console.WriteLine(responseMessage2.Content.ReadAsStringAsync().Result);
+                Console.WriteLine(responseMessage2.Content.ReadAsStringAsync().Result);
 
-                //httpClient.Dispose();
+                httpClient.Dispose();
                 Logger.Log("Uploading file DONE.", ConsoleColor.Green);
-                //return true;
+                return true;
             }
             catch (Exception e)
             {
                 Logger.Log(e.Message, ConsoleColor.Red);
-                //return false;
+                return false;
             }
         }
     }

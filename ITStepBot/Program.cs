@@ -39,12 +39,12 @@ namespace ITStepBot
             Console.Write(Environment.NewLine);
             
             Api myStat = new Api(username, password);
-            myStat.TryLogin(false);
-
-
+            myStat.TryLogin();
+            
             try
             {
-                myStat.UploadHomeworkFile(@"C:\Users\l.listopadov\Desktop\new1.cs");
+                //myStat.CollectDailyPoints();
+                myStat.UploadHomeworkFile(37559, @"C:\Users\Leonid\Desktop\lisa.jpg");
                 Task.WaitAll();
             } catch(Exception e)
             {
@@ -62,20 +62,6 @@ namespace ITStepBot
             //    {
             //        Console.WriteLine(prop.Name + " => " + prop.GetValue(myStat.Homeworks[i]));
             //    }
-            //}
-
-            //TEST GETTING DAILY
-            //if (!myStat.CollectDailyPoints())
-            //{
-            //    Logger.Log("Getting daily points isn't possible. Sleeping 3sec...", ConsoleColor.DarkCyan);
-            //    Thread.Sleep(3000);
-            //}
-
-            //TEST DOWNLOADING HOMEWORK FILE
-
-            //using (var client = new WebClient())
-            //{
-            //    client.DownloadFile(linkHw[0].file_path.ToString(), linkHw[0].filename.ToString());
             //}
         }
     }
