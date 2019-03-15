@@ -16,6 +16,7 @@ namespace ITStepBot
     {
         static void Main(string[] args)
         {
+            #region Login
             Graphics.ShowHello();
 
             Console.Write("Username: ");
@@ -35,16 +36,27 @@ namespace ITStepBot
                 else
                     password += key.KeyChar;
             }
-
             Console.Write(Environment.NewLine);
-            
-            Api myStat = new Api(username, password);
+            #endregion
+
+            Api myStat = new Api(username, password, Cities.Kyiv);
             myStat.TryLogin();
             
             try
             {
+                myStat.CollectDailyPoints();
                 //myStat.CollectDailyPoints();
-                myStat.UploadHomeworkFile(37559, @"C:\Users\Leonid\Desktop\lisa.jpg");
+                //int counter = 0;
+                //foreach(var hwe in myStat.Homeworks)
+                //{
+                //    Console.WriteLine(++counter + " " + hwe.Id + " => " + hwe.Theme);
+                //}
+                //Console.WriteLine("Choose id >> ");
+                //int id = int.Parse(Console.ReadLine());
+                //Console.WriteLine("Sleeping... 2sec");
+                //Thread.Sleep(2000);
+                ////myStat.UploadHomeworkFile(37559, @"C:\Users\Leonid\Desktop\lisa.jpg");
+                ////myStat.DownloadHomeworkFile(myStat.Homeworks.Find(x => x.Id == id.ToString()));
                 Task.WaitAll();
             } catch(Exception e)
             {
@@ -52,17 +64,6 @@ namespace ITStepBot
             }
             Task.WaitAll();
             Console.ReadKey();
-            //myStat.DownloadHomeworkFile(myStat.Homeworks[1]);
-
-            //TEST ENV
-            //myStat.LoadHomeworks();
-            //for (int i = 0; i < 3; i++)
-            //{
-            //    foreach (var prop in typeof(HomeworkEntity).GetProperties())
-            //    {
-            //        Console.WriteLine(prop.Name + " => " + prop.GetValue(myStat.Homeworks[i]));
-            //    }
-            //}
         }
     }
 }
