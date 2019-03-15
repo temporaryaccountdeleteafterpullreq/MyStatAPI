@@ -10,8 +10,27 @@ using System.Threading.Tasks;
 
 namespace MyStatAPI
 {
+    #region CityEnum
+    public enum Cities
+    {
+        Dnipro, Lviv, Kharkiv = 3, Poltava, Mariupil,
+        Odessa, Donetsk, Kyiv, Vinnitca, Zaporizhya,
+        Nicolaev, Rivne, Lutsk, Simferopil = 15, Chernihiv,
+        Minsk, Astana, Gomil, RioDeZhaneiro, Kishinev = 23,
+        Moscow, Bucharest, Sofia, Tbilisi = 28, Almaty, Kherson = 31,
+        Khmelnick, Ternopil, KriviyRig, Pnompen, Seattle, Karaganda,
+        Zhitomir = 39, Kamyanske, StPetersburg, Baku, Bratislava, Prague,
+        Bobruisk, Chernivtsi, Tijuana, Warsaw, Geneve = 50, Rostov, Novgorod,
+        Voronezh, IvanoFrankivsk, Tula, Krasnodar, Novosibirsk, Brno,
+        Grodno, Mogilev, Vitebsk, Brest, Uzhgorod, Cherkasy, MoscowMar,
+        MoscowVoy, MoscowBel, Kramatorsk, Telavi, Tashkent,
+        Yekaterinburh, Chelyabinsk, Omsk, Krasnoyarsk, Perm, Kazan,
+        Samara, Ufa, Volgograd, Yaroslavl
+    }
+    #endregion
     public class Api
     {
+        #region Properties
         public string ApplicationKey { get; private set; } = "6a56a5df2667e65aab73ce76d1dd737f7d1faef9c52e8b8c55ac75f565d8e8a6";
         private string LoginUrl { get; set; } = @"https://msapi.itstep.org/api/v1/auth/login";
         private string UserInfoUrl { get; set; } = @"https://msapi.itstep.org/api/v1/settings/user-info";
@@ -19,8 +38,9 @@ namespace MyStatAPI
         private string UserActivitiesUrl { get; set; } = @"https://msapi.itstep.org/api/v1/dashboard/progress/activity";
         private string GroupInfoUrl { get; set; } = @"https://msapi.itstep.org/api/v1/dashboard/progress/leader-group";
         private string DailyPointsUrl { get; set; } = @"https://msapi.itstep.org/api/v1/feedback/students/comment-academy-day";
-        public string Username { get; private set; }
-        private string Password { get; set; }
+        public string Username { get; set; }
+        public string Password { private get; set; }
+        public Cities City { get; set; }
         public string AccessToken { get; private set; }
         public UserEntity CurrentUser { get; private set; }
         public List<NewsEntity> LatestNews { get; private set; }
@@ -28,14 +48,19 @@ namespace MyStatAPI
         public List<GroupUserEntity> GroupUsers { get; private set; }
         public List<ScheduleEntity> Schedule { get; private set; }
         public List<HomeworkEntity> Homeworks { get; private set; }
+        #endregion
 
-        public Api(string username, string password)
+        #region .ctor
+        public Api () { }
+        public Api(string username, string password, Cities city)
         {
             Username = username;
             Password = password;
+            City = city;
         }
-        
-        public bool TryLogin(bool loadAllData = true)
+        #endregion
+
+        public bool TryLogin(bool debug = false)
         {
             try
             {
@@ -51,11 +76,11 @@ namespace MyStatAPI
                     homePageResult.Result.EnsureSuccessStatusCode();
                     var content = new FormUrlEncodedContent(new[]
                     {
-                    new KeyValuePair<string, string>("application_key", "6a56a5df2667e65aab73ce76d1dd737f7d1faef9c52e8b8c55ac75f565d8e8a6"),
-                    new KeyValuePair<string, string>("id_city", "8"),
-                    new KeyValuePair<string, string>("username", $"{Username}"),
-                    new KeyValuePair<string, string>("password", $"{Password}"),
-                });
+                        new KeyValuePair<string, string>("application_key", "6a56a5df2667e65aab73ce76d1dd737f7d1faef9c52e8b8c55ac75f565d8e8a6"),
+                        new KeyValuePair<string, string>("id_city", "8"),
+                        new KeyValuePair<string, string>("username", $"{Username}"),
+                        new KeyValuePair<string, string>("password", $"{Password}"),
+                    });
                     var loginResult = client.PostAsync("https://msapi.itstep.org/api/v1/auth/login", content).Result;
                     loginResult.EnsureSuccessStatusCode();
                     dynamic result = JsonConvert.DeserializeObject(loginResult.Content.ReadAsStringAsync().Result);
@@ -63,16 +88,17 @@ namespace MyStatAPI
                     AccessToken = result.access_token;
                 }
 
-                if (loadAllData)
-                {
-                    LoadUserInfo();
-                    LoadUserActivities();
-                    LoadSchedule();
-                    LoadLatestNews();
-                    LoadHomeworks();
-                    LoadGroupInfo();
-                }
+                if (debug)
+                    return true;
 
+                LoadUserInfo();
+                LoadUserActivities();
+                LoadSchedule();
+                LoadLatestNews();
+                LoadHomeworks();
+                LoadGroupInfo();
+
+                Logger.Log("Succesfully logged in.", ConsoleColor.Green);
                 return true;
             } catch(Exception e)
             {
@@ -347,9 +373,9 @@ namespace MyStatAPI
                 Logger.Log(e.Message, ConsoleColor.Red);
                 return false;
             }
-        }
+        }   
 
-        public void UploadHomeworkFile(string pathToFile)
+        public bool UploadHomeworkFile(int homeworkId, string pathToFile)
         {
             try
             {
@@ -360,8 +386,9 @@ namespace MyStatAPI
 
                 form.Add(new StringContent(AccessToken), "token");
                 form.Add(new StringContent("prod"), "env");
+                form.Add(new StringContent("create"), "action");
                 byte[] data = File.ReadAllBytes(pathToFile);
-                form.Add(new ByteArrayContent(data, 0, data.Length), "file");
+                form.Add(new ByteArrayContent(data, 0, data.Length), "file", Path.GetFileName(pathToFile));
                 form.Add(new StringContent("1"), "type");
 
                 var httpReqMes = new HttpRequestMessage
@@ -381,41 +408,40 @@ namespace MyStatAPI
                 HttpResponseMessage responseMessage = httpClient.SendAsync(httpReqMes).Result;
                 responseMessage.EnsureSuccessStatusCode();
                 
-                Console.WriteLine(responseMessage.Content.ReadAsStringAsync().Result);
-                Task.WaitAll();
+                dynamic lisa = JsonConvert.DeserializeObject(responseMessage.Content.ReadAsStringAsync().Result);
                 Console.WriteLine("=================");
-                //var content = new FormUrlEncodedContent(new[]
-                //    {
-                //    new KeyValuePair<string, string>("filename", $"{Path.GetFileName(pathToFile)}"),
-                //    new KeyValuePair<string, string>("id", "37559")
-                //});
+                var content = new FormUrlEncodedContent(new[]
+                    {
+                    new KeyValuePair<string, string>("filename", $"{lisa.name}"),
+                    new KeyValuePair<string, string>("id", $"{homeworkId}")
+                });
 
-                //var create = new HttpRequestMessage
-                //{
-                //    Method = HttpMethod.Get,
-                //    RequestUri = new Uri("https://msapi.itstep.org/api/v1/homework/operations/create"),
-                //    Headers =
-                //    {
-                //        { "Authorization", $"Bearer {AccessToken}" },
-                //        { "Accept", "application/json, text/plain, */*" },
-                //        { "Origin", "https://mystat.itstep.org" },
-                //    },
-                //    Content = content
-                //};
+                var create = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri("https://msapi.itstep.org/api/v1/homework/operations/create"),
+                    Headers =
+                    {
+                        { "Authorization", $"Bearer {AccessToken}" },
+                        { "Accept", "application/json, text/plain, */*" },
+                        { "Origin", "https://mystat.itstep.org" },
+                    },
+                    Content = content
+                };
 
-                //HttpResponseMessage responseMessage2 = await httpClient.SendAsync(create);
-                //responseMessage2.EnsureSuccessStatusCode();
+                HttpResponseMessage responseMessage2 = httpClient.SendAsync(create).Result;
+                responseMessage2.EnsureSuccessStatusCode();
 
-                //Console.WriteLine(responseMessage2.Content.ReadAsStringAsync().Result);
+                Console.WriteLine(responseMessage2.Content.ReadAsStringAsync().Result);
 
-                //httpClient.Dispose();
+                httpClient.Dispose();
                 Logger.Log("Uploading file DONE.", ConsoleColor.Green);
-                //return true;
+                return true;
             }
             catch (Exception e)
             {
                 Logger.Log(e.Message, ConsoleColor.Red);
-                //return false;
+                return false;
             }
         }
     }

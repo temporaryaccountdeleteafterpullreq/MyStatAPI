@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ITStepBot", "ITStepBot\ITStepBot.csproj", "{0C048718-54A2-4515-949A-8048C5CD7792}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyStatAPI", "MyStatAPI\MyStatAPI.csproj", "{DCDA69FB-26F1-496E-8C94-192FBDEE354D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyStatAPI", "MyStatAPI\MyStatAPI.csproj", "{DCDA69FB-26F1-496E-8C94-192FBDEE354D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyStatWpf", "MyStatWpf\MyStatWpf.csproj", "{B3870D6B-478F-47A8-AB0E-26C97F7C64A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{DCDA69FB-26F1-496E-8C94-192FBDEE354D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCDA69FB-26F1-496E-8C94-192FBDEE354D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCDA69FB-26F1-496E-8C94-192FBDEE354D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3870D6B-478F-47A8-AB0E-26C97F7C64A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3870D6B-478F-47A8-AB0E-26C97F7C64A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3870D6B-478F-47A8-AB0E-26C97F7C64A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3870D6B-478F-47A8-AB0E-26C97F7C64A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -16,6 +16,7 @@ namespace ITStepBot
     {
         static void Main(string[] args)
         {
+            #region Login
             Graphics.ShowHello();
 
             Console.Write("Username: ");
@@ -35,16 +36,27 @@ namespace ITStepBot
                 else
                     password += key.KeyChar;
             }
-
             Console.Write(Environment.NewLine);
+            #endregion
+
+            Api myStat = new Api(username, password, Cities.Kyiv);
+            myStat.TryLogin();
             
-            Api myStat = new Api(username, password);
-            myStat.TryLogin(false);
-
-
             try
             {
-                myStat.UploadHomeworkFile(@"C:\Users\l.listopadov\Desktop\new1.cs");
+                myStat.CollectDailyPoints();
+                //myStat.CollectDailyPoints();
+                //int counter = 0;
+                //foreach(var hwe in myStat.Homeworks)
+                //{
+                //    Console.WriteLine(++counter + " " + hwe.Id + " => " + hwe.Theme);
+                //}
+                //Console.WriteLine("Choose id >> ");
+                //int id = int.Parse(Console.ReadLine());
+                //Console.WriteLine("Sleeping... 2sec");
+                //Thread.Sleep(2000);
+                ////myStat.UploadHomeworkFile(37559, @"C:\Users\Leonid\Desktop\lisa.jpg");
+                ////myStat.DownloadHomeworkFile(myStat.Homeworks.Find(x => x.Id == id.ToString()));
                 Task.WaitAll();
             } catch(Exception e)
             {
@@ -52,31 +64,6 @@ namespace ITStepBot
             }
             Task.WaitAll();
             Console.ReadKey();
-            //myStat.DownloadHomeworkFile(myStat.Homeworks[1]);
-
-            //TEST ENV
-            //myStat.LoadHomeworks();
-            //for (int i = 0; i < 3; i++)
-            //{
-            //    foreach (var prop in typeof(HomeworkEntity).GetProperties())
-            //    {
-            //        Console.WriteLine(prop.Name + " => " + prop.GetValue(myStat.Homeworks[i]));
-            //    }
-            //}
-
-            //TEST GETTING DAILY
-            //if (!myStat.CollectDailyPoints())
-            //{
-            //    Logger.Log("Getting daily points isn't possible. Sleeping 3sec...", ConsoleColor.DarkCyan);
-            //    Thread.Sleep(3000);
-            //}
-
-            //TEST DOWNLOADING HOMEWORK FILE
-
-            //using (var client = new WebClient())
-            //{
-            //    client.DownloadFile(linkHw[0].file_path.ToString(), linkHw[0].filename.ToString());
-            //}
         }
     }
 }
